@@ -1,0 +1,284 @@
+import path from 'path'
+import get from 'lodash-es/get.js'
+import each from 'lodash-es/each.js'
+import map from 'lodash-es/map.js'
+import size from 'lodash-es/size.js'
+import join from 'lodash-es/join.js'
+import isestr from 'wsemi/src/isestr.mjs'
+import iseobj from 'wsemi/src/iseobj.mjs'
+import isearr from 'wsemi/src/isearr.mjs'
+import cstr from 'wsemi/src/cstr.mjs'
+import pmSeries from 'wsemi/src/pmSeries.mjs'
+import getPathParent from 'wsemi/src/getPathParent.mjs'
+import getFileTrueName from 'wsemi/src/getFileTrueName.mjs'
+import getFileNameExt from 'wsemi/src/getFileNameExt.mjs'
+import fsBuildWriteStreamText from 'wsemi/src/fsBuildWriteStreamText.mjs'
+
+
+/**
+ * 讀取Vtk的ASCII檔
+ *
+ * @param {String} fp 輸入檔案位置字串
+ * @return {Promise} 回傳Promise，resolve回傳ltdt(各數據列為物件陣列)，reject回傳錯誤訊息
+ * @example
+ *
+
+ *
+ */
+async function readVtk(fpDat, name, fpOut) {
+
+    console.log('尚待開發')
+
+    return null
+}
+
+
+/**
+ * 輸出數據至Vtk檔案
+ *
+ * @param {Object|Array} mnes 輸入數據物件或陣列，輸入物件須包含name、nodes、eles，輸入陣列時則各元素為物件(name、nodes、eles)
+ * @param {String} fpOut 輸入儲存檔案位置字串
+ * @param {Object} [opt={}] 輸入設定物件，預設{}
+ * @return {Promise} 回傳Promise，resolve回傳成功訊息，reject回傳錯誤訊息
+ * @example
+ *
+ * let name = 'abc'
+ * let nodes = [...]
+ * let eles = [...]
+ * let fpOut = '{path of file}'
+ *
+ * console.log('writing...')
+ * writeVtk({ name, nodes, eles }, fpOut)
+ *     .then((r) => {
+ *         console.log('finish.')
+ *     })
+ *     .catch((err) => {
+ *         console.log(err)
+ *     })
+ *
+ */
+async function writeVtkCore(mne, fpOut) {
+
+    // let t = `
+
+    // # vtk DataFile Version 4.2
+    // Two Hexahedra (POINT_DATA example)
+    // ASCII
+    // DATASET UNSTRUCTURED_GRID
+
+    // POINTS 12 float
+    // 0 0 0
+    // 1 0 0
+    // 1 1 0
+    // 0 1 0
+    // 0 0 1
+    // 1 0 1
+    // 1 1 1
+    // 0 1 1
+    // 0 0 2
+    // 1 0 2
+    // 1 1 2
+    // 0 1 2
+
+    // CELLS 2 18
+    // 8 0 1 2 3 4 5 6 7
+    // 8 4 5 6 7 8 9 10 11
+
+    // CELL_TYPES 2
+    // 12
+    // 12
+
+    // POINT_DATA 12
+    // SCALARS mat int 1
+    // LOOKUP_TABLE default
+    // 1
+    // 1
+    // 1
+    // 1
+    // 1
+    // 1
+    // 1
+    // 1
+    // 2
+    // 2
+    // 2
+    // 2
+
+    // SCALARS type int 1
+    // LOOKUP_TABLE default
+    // 15
+    // 15
+    // 15
+    // 15
+    // 15
+    // 15
+    // 15
+    // 15
+    // 25
+    // 25
+    // 25
+    // 25
+
+    // `
+
+    //name
+    let name = get(mne, 'name', '')
+    if (!isestr(name)) {
+        throw new Error(`invalid name`)
+    }
+
+    //nodes
+    let nodes = get(mne, 'nodes', [])
+    if (!isearr(nodes)) {
+        throw new Error(`nodes is not an effective array`)
+    }
+
+    //eles
+    let eles = get(mne, 'eles', [])
+    if (!isearr(eles)) {
+        throw new Error(`eles is not an effective array`)
+    }
+
+    //fsBuildWriteStreamText
+    let bdw = fsBuildWriteStreamText()
+
+    //create
+    let pm = bdw.create(fpOut)
+
+    bdw.write(`# vtk DataFile Version 4.2`)
+    bdw.write(`${name}`)
+    bdw.write(`ASCII`)
+    bdw.write(`DATASET UNSTRUCTURED_GRID`)
+
+    //nd
+    let nd = size(nodes)
+    // console.log('nd', nd)
+
+    //ne
+    let ne = size(eles)
+    // console.log('ne', ne)
+
+    bdw.write(`POINTS ${nd} float`)
+
+    each(nodes, (node) => {
+        // console.log('node', node)
+        // => node {
+        //   indn: 5859,
+        //   key: '23-95-1',
+        //   x: 313850,
+        //   y: 2732050,
+        //   z: -20,
+        //   mat: 1,
+        //   active: 0
+        // }
+        let vs = [
+            get(node, 'x', 0),
+            get(node, 'y', 0),
+            get(node, 'z', 0),
+        ]
+        let t = join(vs, ' ')
+        bdw.write(t)
+    })
+
+    bdw.write(`CELLS ${ne} ${(8 + 1) * ne}`) //每個cell使用8節點, 開頭須給8, 故每行有9個數字
+
+    each(eles, (ele) => {
+        // console.log('ele', ele)
+        // => ele {
+        //   inde: 2136,
+        //   nodes: [
+        //      53023,  53285,
+        //      53286,  53024,
+        //     131885, 132147,
+        //     132148, 131886
+        //   ],
+        //   mat: 4
+        // }
+        let vs = ele.nodes
+        vs = map(vs, (v) => {
+            return v - 1 //外部ele給予nodes是1開頭, vtk是0開頭, 故須-1
+        })
+        let t = join(vs, ' ')
+        t = `8 ${t}`
+        bdw.write(t)
+
+    })
+
+    bdw.write(`CELL_TYPES ${ne}`)
+
+    each(eles, (ele) => {
+        bdw.write(`12`) //元素型態12, 為6面體(VTK_HEXAHEDRON)
+    })
+
+    bdw.write(`POINT_DATA ${nd}`)
+
+    bdw.write(`SCALARS mat int 1`) //mat為整數, 1為提供1數字
+    bdw.write(`LOOKUP_TABLE default`) //舊版須讀取head
+    each(nodes, (node) => {
+        bdw.write(get(node, 'mat', '0'))
+    })
+
+    bdw.write(`SCALARS type int 1`) //type為整數, 1為提供1數字
+    bdw.write(`LOOKUP_TABLE default`) //舊版須讀取head
+    each(nodes, (node) => {
+        bdw.write(get(node, 'type', '0'))
+    })
+
+    //end
+    bdw.end()
+
+    return pm
+}
+
+async function writeVtk(mnes, fpOut) {
+
+    //check
+    if (!iseobj(mnes) && !isearr(mnes)) {
+        throw new Error(`mnes is not an effective object or array`)
+    }
+    if (iseobj(mnes)) {
+        mnes = [mnes]
+    }
+
+    //pmSeries
+    let n = size(mnes)
+    let i = 0
+    await pmSeries(mnes, async(mne) => {
+        i++
+
+        let name = get(mne, 'name', '')
+        if (!isestr(name)) {
+            name = cstr(i)
+        }
+
+        let fp = fpOut
+        if (n > 1) {
+            let fd = getPathParent(fpOut)
+            let ftn = getFileTrueName(fpOut)
+            let ext = getFileNameExt(fpOut)
+            fp = path.resolve(fd, `${ftn}_${name}.${ext}`)
+        }
+
+        await writeVtkCore(mne, fp)
+
+    })
+
+}
+
+
+/**
+ * 讀寫Vtk的ASCII檔檔
+ *
+ * @return {Object} 回傳物件，其內有readVtk與writeVtk函式
+ * @example
+ *
+
+ *
+ */
+let WMeshVtk = {
+    readVtk,
+    writeVtk,
+}
+
+
+export default WMeshVtk

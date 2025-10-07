@@ -1,0 +1,28 @@
+{
+  "name": "w-mesh-vtk",
+  "version": "1.0.0",
+  "main": "dist/w-mesh-vtk.umd.js",
+  "dependencies": {
+    "lodash-es": "^4.17.21",
+    "wsemi": "^1.8.22"
+  },
+  "devDependencies": {
+    "w-package-tools": "^1.1.2"
+  },
+  "scripts": {
+    "test": "mocha --parallel --timeout 60000",
+    "deploy": "gh-pages -d docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuda-lyu/w-mesh-vtk.git"
+  },
+  "keywords": [
+    "package",
+    "tool",
+    "vtk",
+    "nodejs"
+  ],
+  "author": "yuda-lyu(semisphere)",
+  "license": "MIT"
+}
