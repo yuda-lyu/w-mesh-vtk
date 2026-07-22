@@ -1,13 +1,13 @@
 {
   "name": "w-mesh-vtk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/w-mesh-vtk.umd.js",
   "dependencies": {
     "lodash-es": "^4.17.21",
-    "wsemi": "^1.8.22"
+    "wsemi": "^1.8.66"
   },
   "devDependencies": {
-    "w-package-tools": "^1.1.2"
+    "w-package-tools": "^1.1.11"
   },
   "scripts": {
     "test": "mocha --parallel --timeout 60000",
