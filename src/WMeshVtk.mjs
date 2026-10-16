@@ -20,8 +20,6 @@ import fsBuildWriteStreamText from 'wsemi/src/fsBuildWriteStreamText.mjs'
  *
  * @param {String} fp 輸入檔案位置字串
  * @return {Promise} 回傳Promise，resolve回傳ltdt(各數據列為物件陣列)，reject回傳錯誤訊息
- * @example
- *
 
  *
  */
@@ -272,6 +270,8 @@ async function writeVtk(mnes, fpOut) {
  * @return {Object} 回傳物件，其內有readVtk與writeVtk函式
  * @example
  *
+ * import wmv from './src/WMeshVtk.mjs'
+ * wmv.writeVtk({ name, nodes, eles }, fpOut)
 
  *
  */

@@ -1,6 +1,6 @@
 {
   "name": "w-mesh-vtk",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "main": "dist/w-mesh-vtk.umd.js",
   "dependencies": {
     "wsemi": "^1.9.12"
